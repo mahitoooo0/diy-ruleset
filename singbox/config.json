@@ -451,7 +451,7 @@
         "direct",
         "block"
       ],
-      "default": "🚀 总模式"
+      "default": "🇺🇸 美国节点"
     },
     {
       "type": "selector",
