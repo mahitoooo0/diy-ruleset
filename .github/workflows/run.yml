@@ -2,7 +2,7 @@ name: Build Custom Rules
 on:
   workflow_dispatch:
   schedule:
-    - cron: "22 22 * * *"
+    - cron: "0 */3 * * *"
   push:
     branches:
       - main
