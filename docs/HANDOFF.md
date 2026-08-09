@@ -233,6 +233,32 @@ $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoi
 Register-ScheduledTask -TaskName "singbox-auto-backup" -Action $action -Trigger $trigger -Settings $settings -Description "自动备份 sing-box 配置到 GitHub" -Force
 ```
 
-## 十三、给新会话的启动指令
+## 十三、Telegram 通知（2026-08-09 配置）
+
+### 机器人
+- Bot：`@mahito963_bot`（My Notifications）
+- token：`8780070484:AAHI0YAWs_hO0AfVQzi0MCydLLFQOLwyLUo`
+- chat_id：`7412354498`
+- 注意：Telegram 国内被封，发送依赖本地代理 127.0.0.1:7897（代理开着才能发）
+
+### 两个通知源
+| 任务 | 脚本 | 频率 | 通知内容 |
+|------|------|------|----------|
+| `singbox-auto-backup` | `Documents\sync-backup.ps1` | 每 4 小时 | 备份失败 `[WARN]`；成功有变化 `[OK]`；无变化不打扰 |
+| `singbox-star-watch` | `Documents\watch-starred.ps1` | 每 6 小时 | 标星仓库（Repcz/Tool、CHIZI-0618/sing-box、Zephyruso/zashboard）有新 release/commit 时 `[Star]` 通知 |
+
+### 标星监控机制
+- 脚本读取 `user/starred` 仓库列表
+- 每个仓库检查：最新 release tag（有的话）+ 默认分支 HEAD commit sha
+- 状态存 `Documents\starred-state.json`，变化才通知
+- 首次运行建立基线不发通知，之后有变化才发
+- 日志：`Documents\starred-log.txt`
+
+### 重要：PowerShell 5.1 编码坑
+- **脚本必须纯 ASCII**（注释和消息都不能有中文/emoji）
+- PowerShell 5.1 按 GBK 读 UTF-8 无 BOM 文件，中文/emoji 多字节会导致解析错乱报语法错误
+- 所以脚本里的通知消息用英文
+
+## 十四、给新会话的启动指令
 
 > "读取 GitHub 仓库 mahitoooo0/diy-ruleset 的 docs/HANDOFF.md 和 singbox/config.json，这是 sing-box eBPF 代理项目，继续维护。gh CLI 在 C:\Program Files\GitHub CLI\gh.exe，github.com 走代理 127.0.0.1:7897。"
