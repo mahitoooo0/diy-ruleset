@@ -204,6 +204,35 @@ https://v6.gh-proxy.org/https://raw.githubusercontent.com/shuaiyuanj-netizen/diy
 ### 15. 交接文档
 - 本 HANDOFF.md 创建并推到 `docs/HANDOFF.md`
 
-## 十一、给新会话的启动指令
+## 十二、自动备份机制（已配置，无需手动）
+
+> 已设置 Windows 定时任务 **`singbox-auto-backup`**，每 4 小时自动把本地母版同步到 GitHub。
+
+### 原理
+- 脚本：`C:\Users\jsy09\Documents\sync-backup.ps1`
+- 定时任务：每 4 小时执行一次（Windows 任务计划程序）
+- 日志：`C:\Users\jsy09\Documents\backup-log.txt`
+- 检测无变化会自动跳过（不产生多余提交）
+
+### 备份内容
+1. `Downloads\config-MoooooO.json` → GitHub `singbox/config.json`
+   - **自动抹掉机场 URL**（改成 `""`）和所有 `token=`（改成 REDACTED），隐私安全
+2. `Downloads\HANDOFF.md` → GitHub `docs/HANDOFF.md`
+
+### 你要做的
+- **什么都不用做**，聊完忘掉也没关系，每 4 小时自动备份一次
+- 想看备份是否成功：打开 `backup-log.txt`，看到 `PUSHED` 就是推上去了，`SKIP(unchanged)` 表示没变化
+- 手动立即备份：右键 `sync-backup.ps1` → 用 PowerShell 运行
+
+### 新电脑重配自动备份
+```powershell
+# 复制 sync-backup.ps1 到新电脑对应路径，然后：
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"C:\Users\jsy09\Documents\sync-backup.ps1`""
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(2) -RepetitionInterval (New-TimeSpan -Hours 4) -RepetitionDuration (New-TimeSpan -Days 3650)
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+Register-ScheduledTask -TaskName "singbox-auto-backup" -Action $action -Trigger $trigger -Settings $settings -Description "自动备份 sing-box 配置到 GitHub" -Force
+```
+
+## 十三、给新会话的启动指令
 
 > "读取 GitHub 仓库 shuaiyuanj-netizen/diy-ruleset 的 docs/HANDOFF.md 和 singbox/config.json，这是 sing-box eBPF 代理项目，继续维护。gh CLI 在 C:\Program Files\GitHub CLI\gh.exe，github.com 走代理 127.0.0.1:7897。"
