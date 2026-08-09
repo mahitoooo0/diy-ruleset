@@ -635,7 +635,7 @@
     {
       "tag": "P1",
       "type": "remote",
-      "url": "https://train.suuwu.de/api/linkon?token=__REPLACE_WITH_NEW_P1_TOKEN__&protocol=anytls",
+      "url": "",
       "exclude": "节点|剩余|套餐|客服|官网",
       "path": "./source/proxy_provider_P1.json",
       "update_interval": "12h",
