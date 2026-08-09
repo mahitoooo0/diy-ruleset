@@ -48,7 +48,7 @@
 
 | 位置 | 内容 | 说明 |
 |------|------|------|
-| `shuaiyuanj-netizen/diy-ruleset` main 分支 | `singbox/config.json` | **配置模板备份**（占位符版，22011 字节） |
+| `mahitoooo0/diy-ruleset` main 分支 | `singbox/config.json` | **配置模板备份**（占位符版，22011 字节） |
 | 同仓库 `docs/HANDOFF.md` | 本交接文档 | 项目上下文 |
 | 同仓库 publish 分支 | `singbox/{tag}.srs` | 规则集产物，Actions 每 3 小时自动重建 |
 | 本地 `Downloads\config-MoooooO.json` | 配置模板母版 | 改配置用这个 |
@@ -57,7 +57,7 @@
 
 ### 规则集源
 ```
-https://v6.gh-proxy.org/https://raw.githubusercontent.com/shuaiyuanj-netizen/diy-ruleset/publish/singbox/{tag}.srs
+https://v6.gh-proxy.org/https://raw.githubusercontent.com/mahitoooo0/diy-ruleset/publish/singbox/{tag}.srs
 ```
 标签：`reject, webrtc, google_ip, twitter_ip, telegram_ip, private_ip, ai`（update_interval 3h）
 
@@ -81,9 +81,9 @@ https://v6.gh-proxy.org/https://raw.githubusercontent.com/shuaiyuanj-netizen/diy
 ## 六、gh CLI 配置（本机）
 
 - 路径：`C:\Program Files\GitHub CLI\gh.exe`（**不在 PATH，需全路径调用**）
-- 登录账号：shuaiyuanj-netizen，token scopes：gist, read:org, repo, workflow（存 Windows 凭据管理器，跨会话持久）
+- 登录账号：mahitoooo0，token scopes：gist, read:org, repo, workflow（存 Windows 凭据管理器，跨会话持久）
 - **网络**：`api.github.com` 可直连；`github.com` 需走系统代理 `http://127.0.0.1:7897`（设置 `HTTPS_PROXY`/`HTTP_PROXY` 环境变量）
-- 常用操作：`gh api repos/shuaiyuanj-netizen/diy-ruleset/contents/{path}`
+- 常用操作：`gh api repos/mahitoooo0/diy-ruleset/contents/{path}`
 - 推送文件用 `-X PUT` + `--input body.json`，body 含 `{message, content(base64), sha}`，**JSON 文件必须无 BOM**（用 `[System.IO.File]::WriteAllText($p,$body,(New-Object System.Text.UTF8Encoding $false))`）
 
 ## 七、需要替换的占位符（部署到手机时）
@@ -170,7 +170,7 @@ https://v6.gh-proxy.org/https://raw.githubusercontent.com/shuaiyuanj-netizen/diy
 - 用户 fork samqvz/diy-ruleset（规则构建引擎），Actions 自动从上游拉取+去重+输出 singbox 格式
 - publish 分支产物：reject/webrtc/google_ip/twitter_ip/telegram_ip/private_ip/ai/cn 等
 - 解决：cnip→cn_ip、privateip→private_ip、telegramip→telegram_ip
-- 链接：`https://v6.gh-proxy.org/https://raw.githubusercontent.com/shuaiyuanj-netizen/diy-ruleset/publish/singbox/{tag}.srs`
+- 链接：`https://v6.gh-proxy.org/https://raw.githubusercontent.com/mahitoooo0/diy-ruleset/publish/singbox/{tag}.srs`
 
 ### 10. AI 服务不可用（Gemini/ChatGPT）
 - 现象：Claude 能对话，GPT/Gemini 不行
@@ -235,4 +235,4 @@ Register-ScheduledTask -TaskName "singbox-auto-backup" -Action $action -Trigger 
 
 ## 十三、给新会话的启动指令
 
-> "读取 GitHub 仓库 shuaiyuanj-netizen/diy-ruleset 的 docs/HANDOFF.md 和 singbox/config.json，这是 sing-box eBPF 代理项目，继续维护。gh CLI 在 C:\Program Files\GitHub CLI\gh.exe，github.com 走代理 127.0.0.1:7897。"
+> "读取 GitHub 仓库 mahitoooo0/diy-ruleset 的 docs/HANDOFF.md 和 singbox/config.json，这是 sing-box eBPF 代理项目，继续维护。gh CLI 在 C:\Program Files\GitHub CLI\gh.exe，github.com 走代理 127.0.0.1:7897。"
