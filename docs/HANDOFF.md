@@ -112,6 +112,98 @@ https://v6.gh-proxy.org/https://raw.githubusercontent.com/shuaiyuanj-netizen/diy
 - 改 run.yml 频率需 workflow 权限（gh token 已有）
 - 仓库规则集更新 → 手机每 3h 自动拉取，无需手动操作
 
-## 十、给新会话的启动指令
+## 十、完整话题历史记录（本次会话全部内容）
+
+> 本会话从"config-MO.json 有什么优化"开始，到配置融合、仓库化、备份结束。按时间顺序记录每个话题的结论。
+
+### 1. 初始配置分析（config-MO.json）
+- 用户：魔改 sing-box eBPF，一加 Ace5 至尊 root
+- 分析发现：map_capacity/cgroup/exclude_package 冗余、DNS timeout 3s、provider 24h 等
+- 首批优化：map_capacity 131072、store_rdrc false、DNS timeout 1s、provider 12h、include_interface 加 rmnet_data0/1
+
+### 2. download_detour 报错
+- 添加 `download_detour: 📡 DNS出站` 后报 unknown field
+- **结论**：CHIZI-0618 魔改版不支持 download_detour（rule_set 层和 route 层都不支持），删除即可
+
+### 3. DNS 泄露问题（browserleaks.com/dns 多次测试）
+- 首次泄露：Chinanet/Tianjij/BJTEL（国内运营商 DNS）+ Google LLC（Chrome DoH/Google DNS）
+- 添加了 3 层阻断：DoT 853 reject、dns.google 域名 reject、8.8.8.8/8.8.4.4/IPv6 reject
+- **重要发现**：Google LLC 的 172.253.x/74.125.x 是代理节点（GoMami HK）的上游 DNS，**不是用户泄露**（误报）
+- 真泄露来源：国内 DNS 被 eBPF `bypass_rule_set: ChinaIP` 内核旁路，53 劫持管不到
+- 修复方案：阻断 dns.google + 8.8.8.8 + 853（已做）；彻底消除需改 bypass 或 iptables（用户选择接受）
+
+### 4. tencent DNS detour 导致超时
+- 给 tencent DoH 加 `detour: 📡 DNS出站` 后，ipip.net 获取公网 IP 超时
+- **结论**：doh.pub 是国内服务器，不需要代理，还原 detour
+
+### 5. 五个配置对比
+| 配置 | 特点 |
+|------|------|
+| 用户 config-MO | fakeip + 完整 per-service + 地区 urltest |
+| CHIZI-0618 官方 gist | 最简，IP 直连 DoH，无 per-service |
+| D:\ config_ebpf_redacted | **evaluate DNS + cnip/privateip bypass + IP 复用，最先进** |
+| singbox-ebpf.json | evaluate + ghost-proxy + ipv4_only |
+| config_ebpf.json | evaluate + Repcz 统一规则 |
+
+### 6. 配置融合（最终架构）
+- **DNS：fakeip → evaluate**（先查后判，响应 IP 命中 CN 走直连）
+- DNS group 分组：dns-proxy（CF+Google）/ dns-direct（tencent+ali）
+- CF/Google DoH 改 IP 直连（1.1.1.1/8.8.8.8），不依赖 hosts
+- SVCB/HTTPS → NOTIMP 防 ECH 绕过
+- QUIC UDP 443 → reject 强制回落 TCP
+- resolve 后 IP 复用（telegram_ip/google_ip/twitter_ip）
+- NTP 同步、urltest_unified_delay、interrupt_exist_connections、tcp_keep_alive
+
+### 7. eBPF inbound 精简
+- 删除 7 个冗余字段：network/udp_timeout/cgroup_enabled/cgroup_path/exclude_package/map_capacity×4
+- bypass_rule_set 最终定为 `["ChinaIP"]`
+
+### 8. rule_set 源问题排查（大量踩坑）
+- samqvz cnip → 404
+- X-Shelby geoip-cn → release CDN 被墙
+- DustinWin privateip/telegramip → 下载失败
+- Repcz 扩展 tag（AI/Apple/Game/Google 等）→ 不存在
+- MetaCubeX geosite cn-lite/cn/private → 不存在
+- **解决**：用用户自建仓库 diy-ruleset publish 分支解决全部
+
+### 9. diy-ruleset 仓库方案
+- 用户 fork samqvz/diy-ruleset（规则构建引擎），Actions 自动从上游拉取+去重+输出 singbox 格式
+- publish 分支产物：reject/webrtc/google_ip/twitter_ip/telegram_ip/private_ip/ai/cn 等
+- 解决：cnip→cn_ip、privateip→private_ip、telegramip→telegram_ip
+- 链接：`https://v6.gh-proxy.org/https://raw.githubusercontent.com/shuaiyuanj-netizen/diy-ruleset/publish/singbox/{tag}.srs`
+
+### 10. AI 服务不可用（Gemini/ChatGPT）
+- 现象：Claude 能对话，GPT/Gemini 不行
+- 日志分析：Claude 走 IPv4（160.79.104.10）正常，GPT/Gemini 走 IPv6（Cloudflare/Google IPv6）不通
+- 修复1：`category-ai-!cn` → 仓库 `ai` 规则集（更全，含 OpenAI/Gemini/Claude）
+- 修复2：DNS `strategy: prefer_ipv4 → ipv4_only`（强制 IPv4，避开节点 IPv6 回程问题）
+- 用户确认：机场支持 IPv6（有 IPv6 连接能通），问题在特定 IPv6 路由/节点 IP 被风控
+
+### 11. 仓库自动更新机制
+- run.yml cron 原为每天一次 → 改为 `0 */3 * * *`（每 3 小时）
+- 手机 rule_set `update_interval: 24h → 3h`（对齐）
+- 结论：仓库更新频率和手机拉取频率是两条独立链路，需两端对齐
+- 权衡：手机 3h 拉取每天约 16-24MB 流量，用户选择 3h（流量多）
+
+### 12. gh CLI 授权与操作
+- 本机 gh 不在 PATH，在 `C:\Program Files\GitHub CLI\gh.exe`
+- token 缺 workflow scope → 无法改 workflow 文件
+- 系统代理 127.0.0.1:7897 可到 github.com（直连不通）
+- 用户授权设备码 E3B2-2428 后获得 workflow 权限
+- **凭证存 Windows 凭据管理器，跨会话/跨话题持久**，新话题不用重新授权
+
+### 13. 配置备份到 GitHub
+- 推到 `diy-ruleset/singbox/config.json`（占位符版，无真实 token）
+- 用途：灾难恢复、版本回滚、跨设备部署
+
+### 14. Token 安全与公开仓库
+- 铁律：GitHub/本地=占位符模板，真实订阅链接只在手机
+- 公开仓库内容安全（无真实密钥）
+- **隐私加固**：GitHub 备份的机场 URL（train.suuwu.de）已改空白 `""`（commit ef52665），本地母版保留
+
+### 15. 交接文档
+- 本 HANDOFF.md 创建并推到 `docs/HANDOFF.md`
+
+## 十一、给新会话的启动指令
 
 > "读取 GitHub 仓库 shuaiyuanj-netizen/diy-ruleset 的 docs/HANDOFF.md 和 singbox/config.json，这是 sing-box eBPF 代理项目，继续维护。gh CLI 在 C:\Program Files\GitHub CLI\gh.exe，github.com 走代理 127.0.0.1:7897。"
