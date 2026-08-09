@@ -677,7 +677,7 @@
         "type": "remote",
         "tag": ["reject", "webrtc", "google_ip", "twitter_ip", "telegram_ip", "private_ip", "ai"],
         "format": "binary",
-        "url": "https://v6.gh-proxy.org/https://raw.githubusercontent.com/shuaiyuanj-netizen/diy-ruleset/publish/singbox/{tag}.srs",
+        "url": "https://v6.gh-proxy.org/https://raw.githubusercontent.com/mahitoooo0/diy-ruleset/publish/singbox/{tag}.srs",
         "update_interval": "3h",
         "path": "./source/rule_set/{tag}.srs"
       }
