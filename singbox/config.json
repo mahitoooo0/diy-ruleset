@@ -690,6 +690,7 @@
         "rules": [{ "port": 53 }, { "protocol": "dns" }],
         "action": "hijack-dns"
       },
+      { "package_name": "com.suishenji.cdscc.hjapp", "action": "route", "outbound": "direct" },
       { "clash_mode": "Global", "action": "route", "outbound": "🚀 总模式" },
       { "clash_mode": "Direct", "action": "route", "outbound": "direct" },
       { "network": "udp", "port": 123, "action": "route", "outbound": "direct" },
