@@ -261,4 +261,11 @@ Register-ScheduledTask -TaskName "singbox-auto-backup" -Action $action -Trigger 
 
 ## 十四、给新会话的启动指令
 
-> "读取 GitHub 仓库 mahitoooo0/diy-ruleset 的 docs/HANDOFF.md 和 singbox/config.json，这是 sing-box eBPF 代理项目，继续维护。gh CLI 在 C:\Program Files\GitHub CLI\gh.exe，github.com 走代理 127.0.0.1:7897。"
+> "读取 GitHub 仓库 mahitoooo0/diy-ruleset 的 docs/HANDOFF.md、docs/chat-history.md 和 singbox/config.json，这是 sing-box eBPF 代理项目，继续维护。gh CLI 在 C:\Program Files\GitHub CLI\gh.exe，github.com 走代理 127.0.0.1:7897。"
+
+### 三个文件的分工
+| 文件 | 内容 |
+|------|------|
+| `docs/HANDOFF.md` | 技术状态：配置架构、仓库位置、token 规则、踩坑记录、自动备份说明 |
+| `docs/chat-history.md` | 对话历程：和用户一步步怎么走到现在的，讨论内容和决策思路 |
+| `singbox/config.json` | 配置模板（占位符版） |
