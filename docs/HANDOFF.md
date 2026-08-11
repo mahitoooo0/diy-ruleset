@@ -104,6 +104,7 @@ https://v6.gh-proxy.org/https://raw.githubusercontent.com/mahitoooo0/diy-ruleset
 8. **AI 规则**：MetaCubeX `category-ai-!cn` 覆盖不全，用仓库合并的 `ai.srs`（含 OpenAI/Gemini/Claude）
 9. **DNS 泄露**：Chrome DoH 走 443 绕过 53 劫持 → 阻断 dns.google 域名 + 8.8.8.8 IP + 853 端口；国内运营商 DNS 泄露来自 eBPF ChinaIP bypass（可接受，或改 private_ip / 加 iptables）
 10. **JSON 校验**：PowerShell 读 UTF-8 用 `[System.IO.File]::ReadAllText($p,[System.Text.Encoding]::UTF8)`，否则中文会乱码误报
+11. **FCM 5228 长连接 2-4 秒被断（2026-08-11 解决）**：mtalk.google.com:5228 在 HK/US/JP 节点均"建立→约 3 秒被远端干净关闭"，且无 error/超时日志 → 这些节点出口机房 IP 被 Google FCM 服务拒绝；**改用 🇸🇬 狮城节点后长连接可挂住 4 分钟+，通知恢复正常**。要点：`🔔 GoogleFCM`/`🔍 Google`/`📡 DNS出站` 三个 selector 需一起固定狮城，且不要切回 `⚡ 延迟最低`（会选中 HK 坏节点）；改后需强停 Google Play 服务让 GMS 重建连接；urltest 组每 5 分钟重测，最佳节点变化会掐断现有长连接（interrupt_exist_connections）
 
 ## 九、仓库自动更新机制
 
@@ -203,6 +204,16 @@ https://v6.gh-proxy.org/https://raw.githubusercontent.com/mahitoooo0/diy-ruleset
 
 ### 15. 交接文档
 - 本 HANDOFF.md 创建并推到 `docs/HANDOFF.md`
+
+### 16. FCM 通知丢失排查（2026-08-11）
+- 现象：把 Google 纳入系统应用后，FCM 通知停/严重延迟（几十秒~几分钟），Gmail 邮件不弹通知
+- 排查过程（按时间序）：
+  - 16:45 日志：FCM 的 DNS/规则/路由匹配正常，mtalk 5228 建立但 2-4 秒后关闭，无错误原因 → 先排除配置规则问题
+  - 错误结论纠正：此前"固定美国节点"和"interrupt_exist_connections 改 false"的建议作废；确认 HK PublicNET 01 是已知坏节点（OpenAI 封、IPv6 回程不通）
+  - 换 US 节点后 Google 流量恢复，但 5228 仍 3 秒断（US PublicNET 03 也一样）
+  - 17:48 日志：JP PrivateNET 02 上 5228 仍 3.28 秒干净关闭，且无 selector 切换事件 → 判定是 Google 侧拒绝节点出口机房 IP，非本机问题
+  - **最终解决**：三个 selector（🔔 GoogleFCM / 🔍 Google / 📡 DNS出站）全部固定 🇸🇬 狮城节点 → 18:03 日志出现 4 分钟+ 长连接，Gmail 邮件通知恢复正常
+- 结论：HK/US/JP 这批节点出口 IP 被 Google FCM 拒绝，狮城节点 IP 干净；FCM 依赖长连接，selector 切换会掐断它（interrupt_exist_connections: true），改完必须强停 Google Play 服务让 GMS 重建
 
 ## 十二、自动备份机制（已配置，无需手动）
 
