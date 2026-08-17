@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CHIZI-0618/sing-box/testing-ebpf-cilium/docs/schema.json",
+  "$schema": "https://raw.githubusercontent.com/CHIZI-0618/sing-box/testing-ref1nd/docs/schema.json",
   "log": {
     "disabled": false,
     "level": "info",
@@ -13,6 +13,7 @@
     "interval": "1d"
   },
   "experimental": {
+    "urltest_unified_delay": true,
     "cache_file": {
       "enabled": true,
       "path": "cache.db",
@@ -72,21 +73,31 @@
         }
       },
       {
+        "tag": "dns-proxy",
+        "type": "group",
+        "servers": [
+          "cloudflare",
+          "google"
+        ]
+      },
+      {
+        "tag": "dns-direct",
+        "type": "group",
+        "servers": [
+          "tencent",
+          "ali"
+        ]
+      },
+      {
         "tag": "cloudflare",
         "type": "https",
         "server": "1.1.1.1",
-        "tls": {
-          "server_name": "cloudflare-dns.com"
-        },
         "detour": "📡 DNS出站"
       },
       {
         "tag": "google",
         "type": "https",
         "server": "8.8.8.8",
-        "tls": {
-          "server_name": "dns.google"
-        },
         "detour": "📡 DNS出站"
       },
       {
@@ -114,7 +125,7 @@
           "px.ucweb.com"
         ],
         "action": "route",
-        "server": "tencent"
+        "server": "dns-direct"
       },
       {
         "type": "logical",
@@ -136,12 +147,12 @@
       {
         "clash_mode": "Direct",
         "action": "route",
-        "server": "tencent"
+        "server": "dns-direct"
       },
       {
         "clash_mode": "Global",
         "action": "route",
-        "server": "cloudflare"
+        "server": "dns-proxy"
       },
       {
         "domain_suffix": [
@@ -154,14 +165,14 @@
           "device-provisioning.googleapis.com"
         ],
         "action": "route",
-        "server": "cloudflare"
+        "server": "dns-proxy"
       },
       {
         "rule_set": [
           "googlefcm"
         ],
         "action": "route",
-        "server": "cloudflare"
+        "server": "dns-proxy"
       },
       {
         "rule_set": [
@@ -179,7 +190,7 @@
           "ChinaDomain"
         ],
         "action": "route",
-        "server": "tencent"
+        "server": "dns-direct"
       },
       {
         "rule_set": [
@@ -199,7 +210,7 @@
           "AAAA"
         ],
         "action": "route",
-        "server": "cloudflare"
+        "server": "dns-proxy"
       },
       {
         "query_type": "PTR",
@@ -222,7 +233,7 @@
           "gn-cn"
         ],
         "action": "route",
-        "server": "tencent"
+        "server": "dns-direct"
       },
       {
         "query_type": [
@@ -230,7 +241,7 @@
           "AAAA"
         ],
         "action": "evaluate",
-        "server": "cloudflare"
+        "server": "dns-proxy"
       },
       {
         "type": "logical",
@@ -245,7 +256,7 @@
             "match_response": true
           }
         ],
-        "server": "tencent",
+        "server": "dns-direct",
         "disable_cache": false
       },
       {
@@ -256,7 +267,7 @@
         "action": "respond"
       }
     ],
-    "final": "tencent",
+    "final": "dns-direct",
     "reverse_mapping": true,
     "optimistic": true,
     "strategy": "ipv4_only",
@@ -272,7 +283,7 @@
     {
       "type": "ebpf",
       "tag": "ebpf-in",
-      "mode": "local",
+      "mode": "hybrid",
       "network": [
         "tcp",
         "udp"
@@ -280,7 +291,9 @@
       "udp_timeout": "5m",
       "dns_mode": "hijack",
       "bypass_private_address": true,
-      "bypass_rule_set": [],
+      "bypass_rule_set": [
+        "ChinaIP"
+      ],
       "local": {
         "cgroup_path": "",
         "ipv6_mode": "auto",
@@ -292,6 +305,24 @@
         "include_package": [],
         "exclude_package": [],
         "state_capacity": 0
+      },
+      "shared": {
+        "interface": [
+          "wlan0",
+          "wlan1",
+          "rmnet_data0",
+          "rmnet_data1",
+          "ap0"
+        ],
+        "ipv6_mode": "always",
+        "include_source_cidr": [],
+        "exclude_source_cidr": [],
+        "include_mac_address": [],
+        "exclude_mac_address": [],
+        "state_capacity": 0,
+        "advanced": {
+          "tc_priority": 1
+        }
       }
     }
   ],
@@ -300,55 +331,8 @@
       "tag": "direct",
       "type": "direct",
       "tcp_keep_alive": "5m",
-      "tcp_keep_alive_interval": "45s"
-    },
-    {
-      "type": "anytls",
-      "tag": "[A]HK PublicNET 01",
-      "server": "141.11.77.239",
-      "server_port": 443,
-      "tls": {"enabled": true, "server_name": "gateway-gbl-direct.appcli.net", "utls": {"enabled": true, "fingerprint": "firefox"}},
-      "password": "__REPLACE_WITH_P1_NODE_PASSWORD__"
-    },
-    {
-      "type": "anytls",
-      "tag": "[A]JP PrivateNET 01",
-      "server": "141.11.77.239",
-      "server_port": 443,
-      "tls": {"enabled": true, "server_name": "gateway-nrt-edge.appcli.net", "utls": {"enabled": true, "fingerprint": "firefox"}},
-      "password": "__REPLACE_WITH_P1_NODE_PASSWORD__"
-    },
-    {
-      "type": "anytls",
-      "tag": "[A]US PublicNET 01",
-      "server": "179.255.148.6",
-      "server_port": 443,
-      "tls": {"enabled": true, "server_name": "stream-lax-edge.appcli.net", "utls": {"enabled": true, "fingerprint": "firefox"}},
-      "password": "__REPLACE_WITH_P1_NODE_PASSWORD__"
-    },
-    {
-      "type": "anytls",
-      "tag": "[A]SG PrivateNET 01",
-      "server": "141.11.77.239",
-      "server_port": 443,
-      "tls": {"enabled": true, "server_name": "stream-sin-edge.appcli.net", "utls": {"enabled": true, "fingerprint": "firefox"}},
-      "password": "__REPLACE_WITH_P1_NODE_PASSWORD__"
-    },
-    {
-      "type": "anytls",
-      "tag": "[A]TW PrivateNET 01",
-      "server": "141.11.77.239",
-      "server_port": 443,
-      "tls": {"enabled": true, "server_name": "gateway-tpe-edge.appcli.net", "utls": {"enabled": true, "fingerprint": "firefox"}},
-      "password": "__REPLACE_WITH_P1_NODE_PASSWORD__"
-    },
-    {
-      "type": "anytls",
-      "tag": "[A]FR PublicNET 01",
-      "server": "141.11.77.239",
-      "server_port": 443,
-      "tls": {"enabled": true, "server_name": "stream-cdg-edge.appcli.net", "utls": {"enabled": true, "fingerprint": "firefox"}},
-      "password": "__REPLACE_WITH_P1_NODE_PASSWORD__"
+      "tcp_keep_alive_interval": "45s",
+      "tcp_keep_alive_count": 5
     },
     {
       "tag": "block",
@@ -390,14 +374,7 @@
     {
       "type": "urltest",
       "tag": "⚡ 延迟最低",
-      "outbounds": [
-        "[A]HK PublicNET 01",
-        "[A]JP PrivateNET 01",
-        "[A]US PublicNET 01",
-        "[A]SG PrivateNET 01",
-        "[A]TW PrivateNET 01",
-        "[A]FR PublicNET 01"
-      ],
+      "providers": ["P1"],
       "url": "http://cp.cloudflare.com/generate_204",
       "interval": "5m",
       "tolerance": 20
@@ -715,7 +692,8 @@
     {
       "type": "urltest",
       "tag": "🇭🇰 香港节点",
-      "outbounds": ["[A]HK PublicNET 01"],
+      "providers": ["P1"],
+      "include": "(?i)(🇭🇰|香港|HK|hong\\s*kong)",
       "tolerance": 20,
       "url": "http://cp.cloudflare.com/generate_204",
       "interval": "5m"
@@ -723,7 +701,8 @@
     {
       "type": "urltest",
       "tag": "🇯🇵 日本节点",
-      "outbounds": ["[A]JP PrivateNET 01"],
+      "providers": ["P1"],
+      "include": "(?i)(🇯🇵|日本|JP|japan)",
       "tolerance": 20,
       "url": "http://cp.cloudflare.com/generate_204",
       "interval": "5m"
@@ -731,7 +710,8 @@
     {
       "type": "urltest",
       "tag": "🇺🇸 美国节点",
-      "outbounds": ["[A]US PublicNET 01"],
+      "providers": ["P1"],
+      "include": "(?i)(🇺🇸|美国|US|america|united\\s*states)",
       "tolerance": 20,
       "url": "http://cp.cloudflare.com/generate_204",
       "interval": "5m"
@@ -739,7 +719,8 @@
     {
       "type": "urltest",
       "tag": "🇸🇬 狮城节点",
-      "outbounds": ["[A]SG PrivateNET 01"],
+      "providers": ["P1"],
+      "include": "(?i)(🇸🇬|新加坡|狮城|SG|singapore)",
       "tolerance": 20,
       "url": "http://cp.cloudflare.com/generate_204",
       "interval": "5m"
@@ -747,7 +728,8 @@
     {
       "type": "urltest",
       "tag": "🇹🇼 台湾节点",
-      "outbounds": ["[A]TW PrivateNET 01"],
+      "providers": ["P1"],
+      "include": "(?i)(🇹🇼|台湾|TW|taiwan)",
       "tolerance": 20,
       "url": "http://cp.cloudflare.com/generate_204",
       "interval": "5m"
@@ -756,24 +738,35 @@
       "tag": "👨‍🦽 其他节点",
       "type": "selector",
       "interrupt_exist_connections": true,
-      "outbounds": ["[A]FR PublicNET 01"]
+      "providers": ["P1"],
+      "exclude": "(?i)(🇭🇰|香港|HK|🇯🇵|日本|JP|🇺🇸|美国|US|🇸🇬|新加坡|狮城|SG|🇹🇼|台湾|TW)"
     },
     {
       "tag": "🖐️ 手动选择",
       "type": "selector",
       "interrupt_exist_connections": true,
-      "outbounds": [
-        "[A]HK PublicNET 01",
-        "[A]JP PrivateNET 01",
-        "[A]US PublicNET 01",
-        "[A]SG PrivateNET 01",
-        "[A]TW PrivateNET 01",
-        "[A]FR PublicNET 01"
-      ]
+      "providers": ["P1"]
+    }
+  ],
+  "providers": [
+    {
+      "type": "remote",
+      "tag": "P1",
+      "url": "",
+      "exclude": "节点|剩余|套餐|客服|官网",
+      "initial_path": "./source/proxy_provider_P1.json",
+      "update_interval": "12h",
+      "user_agent": "clash.meta/alpha/mihomo",
+      "health_check": {
+        "enabled": true,
+        "url": "http://cp.cloudflare.com/generate_204",
+        "interval": "10m",
+        "timeout": "5s"
+      }
     }
   ],
   "route": {
-    "default_domain_resolver": "tencent",
+    "default_domain_resolver": "dns-direct",
     "rule_set": [
       {
         "type": "local",
@@ -1132,7 +1125,8 @@
         "outbound": "direct"
       },
       {
-        "action": "resolve"
+        "action": "resolve",
+        "match_only": true
       },
       {
         "rule_set": [
@@ -1172,6 +1166,7 @@
     "find_process": true,
     "auto_detect_interface": true,
     "default_http_client": "s-download",
+    "default_domain_match_strategy": "prefer_fqdn",
     "final": "🌐 漏网之鱼"
   }
 }
