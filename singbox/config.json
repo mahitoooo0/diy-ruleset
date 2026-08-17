@@ -124,28 +124,26 @@
     "rules": [
       {
         "domain": [
+          "ad.fenbushijujuefuwu.com"
+        ],
+        "action": "predefined",
+        "rcode": "NXDOMAIN"
+      },
+      {
+        "domain": [
           "px.ucweb.com"
         ],
         "action": "route",
         "server": "dns-direct"
       },
       {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "clash_mode": "AllowAds",
-            "invert": true
-          },
-          {
-            "rule_set": [
-              "block",
-              "Ads_AWAvenue",
-              "ads"
-            ]
-          }
+        "rule_set": [
+          "block",
+          "Ads_AWAvenue",
+          "ads"
         ],
-        "action": "reject"
+        "action": "predefined",
+        "rcode": "NXDOMAIN"
       },
       {
         "clash_mode": "Direct",
@@ -878,6 +876,29 @@
         "action": "hijack-dns"
       },
       {
+        "domain": [
+          "ad.fenbushijujuefuwu.com"
+        ],
+        "action": "reject",
+        "method": "default"
+      },
+      {
+        "rule_set": [
+          "block",
+          "Ads_AWAvenue",
+          "ads"
+        ],
+        "action": "reject",
+        "method": "default"
+      },
+      {
+        "ip_cidr": [
+          "23.141.84.231/32"
+        ],
+        "action": "reject",
+        "method": "default"
+      },
+      {
         "package_name": "com.suishenji.cdscc.hjapp",
         "action": "route",
         "outbound": "direct"
@@ -949,24 +970,6 @@
         ],
         "action": "route",
         "outbound": "direct"
-      },
-      {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "clash_mode": "AllowAds",
-            "invert": true
-          },
-          {
-            "rule_set": [
-              "block",
-              "Ads_AWAvenue",
-              "ads"
-            ]
-          }
-        ],
-        "action": "reject"
       },
       {
         "rule_set": [
