@@ -17,14 +17,16 @@
     "cache_file": {
       "enabled": true,
       "path": "cache.db",
-      "store_fakeip": true
+      "store_fakeip": true,
+      "store_dns": true
     },
     "clash_api": {
       "default_mode": "Rule",
       "external_controller": "127.0.0.1:9090",
       "secret": "__REPLACE_WITH_NEW_CLASH_API_SECRET__",
       "external_ui": "zashboard",
-      "external_ui_download_url": "https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
+      "external_ui_download_url": "https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip",
+      "external_ui_http_client": "s-download"
     }
   },
   "services": [
@@ -45,7 +47,7 @@
   "http_clients": [
     {
       "tag": "s-download",
-      "detour": "📡 DNS出站"
+      "detour": "🔄 更新下载"
     }
   ],
   "dns": {
@@ -138,7 +140,8 @@
           {
             "rule_set": [
               "block",
-              "Ads_AWAvenue"
+              "Ads_AWAvenue",
+              "ads"
             ]
           }
         ],
@@ -178,7 +181,8 @@
         "rule_set": [
           "Ads_AWAvenue",
           "reject",
-          "webrtc"
+          "webrtc",
+          "ads"
         ],
         "action": "predefined",
         "rcode": "NXDOMAIN"
@@ -370,6 +374,16 @@
         "direct"
       ],
       "default": "⚡ 延迟最低"
+    },
+    {
+      "tag": "🔄 更新下载",
+      "type": "selector",
+      "interrupt_exist_connections": true,
+      "outbounds": [
+        "🚀 总模式",
+        "direct"
+      ],
+      "default": "🚀 总模式"
     },
     {
       "type": "urltest",
@@ -794,6 +808,14 @@
       },
       {
         "type": "remote",
+        "tag": "ads",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/DustinWin/ruleset_geodata/sing-box-ruleset/ads.srs",
+        "update_interval": "3h",
+        "initial_path": "./source/rule_set/ads.srs"
+      },
+      {
+        "type": "remote",
         "tag": [
           "google",
           "github",
@@ -939,7 +961,8 @@
           {
             "rule_set": [
               "block",
-              "Ads_AWAvenue"
+              "Ads_AWAvenue",
+              "ads"
             ]
           }
         ],
